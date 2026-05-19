@@ -46,6 +46,9 @@ io.on('connection', (socket) => {
 // Make io available to routes
 app.set('io', io);
 
+// 404 handler
+app.use(notFoundHandler);
+
 // Error handling
 app.use(errorHandler);
 
