@@ -1,19 +1,11 @@
 # Getting Started with Common Good
 
-## Prerequisites
-
-- Node.js 18+
-- Python 3.9+
-- Rust 1.70+
-- Docker & Docker Compose
-- Git
-
-## Setup Instructions
+## Repository Setup
 
 ### 1. Clone Repository
 ```bash
 git clone https://github.com/thezeebass/commongood.git
-cd common-good
+cd commongood
 ```
 
 ### 2. Install Dependencies
@@ -22,151 +14,174 @@ cd common-good
 ```bash
 cd backend
 npm install
-cp .env.example .env
+cd ..
 ```
 
 #### AI Agent
 ```bash
-cd ../ai-agent
-python -m venv venv
-source venv/bin/activate  # or `venv\Scripts\activate` on Windows
+cd ai-agent
 pip install -r requirements.txt
-```
-
-#### Smart Contracts
-```bash
-cd ../contracts
-cargo build
+cd ..
 ```
 
 #### Frontend
 ```bash
-cd ../frontend
+cd frontend
 npm install
+cd ..
 ```
 
-### 3. Setup Supabase
+### 3. Environment Setup
 
-1. Create a Supabase project at https://supabase.com
-2. Run migrations:
-```bash
-cd database/supabase
-supabase db push < migrations/001_initial_schema.sql
-supabase db push < migrations/002_add_contractors.sql
-supabase db push < migrations/003_add_milestones.sql
-supabase db push < migrations/004_add_consensus_rounds.sql
+Create `.env` files for each service:
+
+#### backend/.env
 ```
-
-3. Seed demo data:
-```bash
-supabase db push < seed/demo_users.sql
-supabase db push < seed/demo_projects.sql
-supabase db push < seed/demo_agents.sql
-```
-
-### 4. Environment Configuration
-
-Create `.env` files in each service:
-
-**backend/.env**
-```env
 NODE_ENV=development
 PORT=3000
-DATABASE_URL=postgresql://[user]:[password]@[host]:[port]/[database]
-SUPABASE_URL=https://[project].supabase.co
-SUPABASE_KEY=[anon-key]
-STELLAR_NETWORK=testnet
-GOVERNANCE_CONTRACT_ID=[contract-id]
-REDIS_URL=redis://localhost:6379
 FRONTEND_URL=http://localhost:5173
+
+DATABASE_URL=postgresql://...
+SUPABASE_KEY=your_supabase_key
+SUPABASE_URL=your_supabase_url
+
+STELLAR_NETWORK=testnet
+GOVERNANCE_CONTRACT_ID=your_contract_id
+VOTER_SECRET_KEY=your_secret_key
+
+REDIS_URL=redis://localhost:6379
+
+TWILIO_ACCOUNT_SID=your_account_sid
+TWILIO_AUTH_TOKEN=your_auth_token
+
+JWT_SECRET=your_jwt_secret
 ```
 
-**ai-agent/.env**
-```env
+#### ai-agent/.env
+```
 FASTAPI_ENV=development
+AI_AGENT_PORT=8000
 BACKEND_URL=http://localhost:3000
+
+DATABASE_URL=postgresql://...
 ```
 
-### 5. Deploy Smart Contracts to Stellar Testnet
+#### frontend/.env
+```
+VITE_API_URL=http://localhost:3000
+VITE_WS_URL=ws://localhost:3000
+```
 
+### 4. Database Setup
+
+#### Create Supabase Project
+1. Go to [supabase.com](https://supabase.com)
+2. Create new project
+3. Note your Database URL and API key
+
+#### Run Migrations
 ```bash
-cd scripts
-chmod +x deploy-contracts.sh
-./deploy-contracts.sh
+# Install Supabase CLI
+npm install -g supabase
+
+# Link project
+supabase link --project-ref your_project_ref
+
+# Run migrations
+supabase db push
 ```
 
-This will:
-- Compile Rust contracts
-- Deploy to Stellar testnet
-- Output contract IDs to `.env`
+### 5. Stellar Smart Contracts
 
-### 6. Run Full Stack
+#### Install Soroban CLI
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://install.stellar.org/soroban-cli | sh
+```
 
+#### Deploy Governance Contract
+```bash
+cd contracts/governance
+cargo build --target wasm32-unknown-unknown --release
+soroban contract deploy --wasm target/wasm32-unknown-unknown/release/governance.wasm --network testnet
+```
+
+### 6. Start Development Stack
+
+#### Option 1: Docker Compose (Recommended)
 ```bash
 docker-compose up
 ```
 
-Or run services individually:
+This will start:
+- Backend (Express.js) on port 3000
+- Frontend (React) on port 5173
+- AI Agent (FastAPI) on port 8000
+- PostgreSQL database
+- Redis cache
 
-**Terminal 1 - Backend:**
+#### Option 2: Manual Start
+
+Terminal 1 - Backend:
 ```bash
 cd backend
 npm run dev
 ```
 
-**Terminal 2 - AI Agent:**
+Terminal 2 - AI Agent:
 ```bash
 cd ai-agent
 python src/main.py
 ```
 
-**Terminal 3 - Frontend:**
+Terminal 3 - Frontend:
 ```bash
 cd frontend
 npm run dev
 ```
 
-## Testing
+### 7. Verify Setup
+
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:3000
+- AI Agent: http://localhost:8000
+
+### 8. Load Demo Data
 
 ```bash
-# Run all tests
-./scripts/run-tests.sh
-
-# Backend tests
-cd backend && npm test
-
-# Contract tests
-cd contracts && cargo test
+bash scripts/seed-data.sh
 ```
 
-## API Documentation
+## Next Steps
 
-Once backend is running, visit:
-- Swagger UI: http://localhost:3000/api-docs
-- API Reference: [docs/API_REFERENCE.md](./docs/API_REFERENCE.md)
-
-## Architecture Overview
-
-See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for system design and data flow.
+1. Review [ARCHITECTURE.md](./ARCHITECTURE.md) for system design
+2. Check [API_REFERENCE.md](./API_REFERENCE.md) for backend endpoints
+3. Review [SMART_CONTRACT_SPEC.md](./SMART_CONTRACT_SPEC.md) for contract details
+4. See [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines
 
 ## Troubleshooting
 
-### Smart Contract Deployment Issues
-- Ensure you have testnet XLM in your account
-- Check Stellar documentation: https://developers.stellar.org
+### Port Already in Use
+```bash
+lsof -ti:3000 | xargs kill -9  # Backend
+lsof -ti:5173 | xargs kill -9  # Frontend
+lsof -ti:8000 | xargs kill -9  # AI Agent
+```
 
-### Supabase Connection Failed
-- Verify DATABASE_URL environment variable
-- Check firewall rules
+### Database Connection Issues
+- Verify Supabase credentials in `.env`
+- Check database is accessible: `psql postgres://...`
+- Run migrations again: `supabase db push`
 
-### WebSocket Connection Issues
-- Ensure frontend FRONTEND_URL matches backend configuration
-- Check CORS settings
+### Stellar Contract Issues
+- Verify contract ID in `.env`
+- Check account has sufficient XLM for testnet
+- Use [Stellar Lab](https://lab.stellar.org) for debugging
 
-## Contributing
+## Development Commands
 
-See [docs/CONTRIBUTING.md](./docs/CONTRIBUTING.md) for guidelines.
-
-## License
-
-MIT License - See [LICENSE](./LICENSE) file
+```bash
+bash scripts/run-tests.sh
+bash scripts/deploy-contracts.sh
+bash scripts/seed-data.sh
+bash scripts/setup-dev.sh
+```
