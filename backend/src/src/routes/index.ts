@@ -17,4 +17,14 @@ router.use('/agents', agentsRoutes);
 router.use('/contractors', contractorsRoutes);
 router.use('/admin', adminRoutes);
 
-export default router;
+// Export both the combined router and named routes for compatibility
+export default {
+  auth: authRoutes,
+  users: usersRoutes,
+  projects: projectsRoutes,
+  votes: votesRoutes,
+  agents: agentsRoutes,
+  contractors: contractorsRoutes,
+  admin: adminRoutes,
+  router,
+};
