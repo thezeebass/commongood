@@ -1,35 +1,14 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
-import { apiClient } from './index'
+import { apiGet, apiPost } from './client';
+import type { Project } from '@/types';
 
-export const useProjects = () => {
-  return useQuery({
-    queryKey: ['projects'],
-    queryFn: async () => {
-      const { data } = await apiClient.get('/projects')
-      return data
-    },
-  })
+export async function getProjects(): Promise<Project[]> {
+  return apiGet<Project[]>('/api/projects');
 }
 
-export const useProject = (id: string) => {
-  return useQuery({
-    queryKey: ['projects', id],
-    queryFn: async () => {
-      const { data } = await apiClient.get(`/projects/${id}`)
-      return data
-    },
-  })
+export async function getProject(id: number): Promise<Project> {
+  return apiGet<Project>(`/api/projects/${id}`);
 }
 
-export const useSubmitVote = () => {
-  return useMutation({
-    mutationFn: async (payload: {
-      projectId: number
-      voteValue: boolean
-      voteIntensity: number
-    }) => {
-      const { data } = await apiClient.post('/votes', payload)
-      return data
-    },
-  })
+export async function createProject(data: Omit<Project, 'id' | 'createdAt' | 'currentFunding' | 'currentParticipants' | 'currentApprovalRate' | 'status'>): Promise<Project> {
+  return apiPost<Project>('/api/projects', data);
 }
