@@ -6,7 +6,7 @@ import { createServer } from 'http';
 import { Server as SocketServer } from 'socket.io';
 import { config } from './config/database';
 import routes from './routes';
-import { errorHandler } from './middleware/errorHandler';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { rateLimiter } from './middleware/rateLimiting';
 
 const app = express();
