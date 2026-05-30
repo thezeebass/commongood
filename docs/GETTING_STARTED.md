@@ -1,187 +1,104 @@
 # Getting Started with Common Good
 
-## Repository Setup
+## Prerequisites
 
-### 1. Clone Repository
-```bash
+- Node.js 20+
+- Python 3.10+
+- Rust 1.70+
+- Docker & Docker Compose
+- Git
+
+## Local Development Setup
+
+### 1. Clone the Repository
+
+\`\`\`bash
+cd C:\Users\a\Documents\GitHub
 git clone https://github.com/thezeebass/commongood.git
 cd commongood
-```
+\`\`\`
 
-### 2. Install Dependencies
+### 2. Setup Environment Variables
 
-#### Backend
-```bash
+\`\`\`bash
+copy .env.example .env.local
+# Edit .env.local with your actual values
+\`\`\`
+
+### 3. Start Docker Services
+
+\`\`\`bash
+docker-compose up -d
+\`\`\`
+
+Verify services are running:
+\`\`\`bash
+docker-compose ps
+\`\`\`
+
+### 4. Install Frontend Dependencies
+
+\`\`\`bash
+cd frontend
+npm install
+npm run dev
+\`\`\`
+
+Frontend will be at: http://localhost:3000
+
+### 5. Install Backend Dependencies (New Terminal)
+
+\`\`\`bash
 cd backend
 npm install
-cd ..
-```
+npm run dev
+\`\`\`
 
-#### AI Agent
-```bash
+Backend will be at: http://localhost:3001
+
+### 6. Install AI Agent Dependencies (New Terminal)
+
+\`\`\`bash
 cd ai-agent
 pip install -r requirements.txt
-cd ..
-```
+python -m uvicorn src.main:app --reload
+\`\`\`
 
-#### Frontend
-```bash
-cd frontend
-npm install
-cd ..
-```
+AI Agent will be at: http://localhost:8000
 
-### 3. Environment Setup
+## Stopping Services
 
-Create `.env` files for each service:
+\`\`\`bash
+docker-compose down
+\`\`\`
 
-#### backend/.env
-```
-NODE_ENV=development
-PORT=3000
-FRONTEND_URL=http://localhost:5173
+## Common Commands
 
-DATABASE_URL=postgresql://...
-SUPABASE_KEY=your_supabase_key
-SUPABASE_URL=your_supabase_url
+\`\`\`bash
+# Build projects
+npm run build
 
-STELLAR_NETWORK=testnet
-GOVERNANCE_CONTRACT_ID=your_contract_id
-VOTER_SECRET_KEY=your_secret_key
+# Run tests
+npm test
 
-REDIS_URL=redis://localhost:6379
+# Lint code
+npm run lint
 
-TWILIO_ACCOUNT_SID=your_account_sid
-TWILIO_AUTH_TOKEN=your_auth_token
-
-JWT_SECRET=your_jwt_secret
-```
-
-#### ai-agent/.env
-```
-FASTAPI_ENV=development
-AI_AGENT_PORT=8000
-BACKEND_URL=http://localhost:3000
-
-DATABASE_URL=postgresql://...
-```
-
-#### frontend/.env
-```
-VITE_API_URL=http://localhost:3000
-VITE_WS_URL=ws://localhost:3000
-```
-
-### 4. Database Setup
-
-#### Create Supabase Project
-1. Go to [supabase.com](https://supabase.com)
-2. Create new project
-3. Note your Database URL and API key
-
-#### Run Migrations
-```bash
-# Install Supabase CLI
-npm install -g supabase
-
-# Link project
-supabase link --project-ref your_project_ref
-
-# Run migrations
-supabase db push
-```
-
-### 5. Stellar Smart Contracts
-
-#### Install Soroban CLI
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://install.stellar.org/soroban-cli | sh
-```
-
-#### Deploy Governance Contract
-```bash
-cd contracts/governance
-cargo build --target wasm32-unknown-unknown --release
-soroban contract deploy --wasm target/wasm32-unknown-unknown/release/governance.wasm --network testnet
-```
-
-### 6. Start Development Stack
-
-#### Option 1: Docker Compose (Recommended)
-```bash
-docker-compose up
-```
-
-This will start:
-- Backend (Express.js) on port 3000
-- Frontend (React) on port 5173
-- AI Agent (FastAPI) on port 8000
-- PostgreSQL database
-- Redis cache
-
-#### Option 2: Manual Start
-
-Terminal 1 - Backend:
-```bash
-cd backend
-npm run dev
-```
-
-Terminal 2 - AI Agent:
-```bash
-cd ai-agent
-python src/main.py
-```
-
-Terminal 3 - Frontend:
-```bash
-cd frontend
-npm run dev
-```
-
-### 7. Verify Setup
-
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:3000
-- AI Agent: http://localhost:8000
-
-### 8. Load Demo Data
-
-```bash
-bash scripts/seed-data.sh
-```
-
-## Next Steps
-
-1. Review [ARCHITECTURE.md](./ARCHITECTURE.md) for system design
-2. Check [API_REFERENCE.md](./API_REFERENCE.md) for backend endpoints
-3. Review [SMART_CONTRACT_SPEC.md](./SMART_CONTRACT_SPEC.md) for contract details
-4. See [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines
+# Format code
+npm run format
+\`\`\`
 
 ## Troubleshooting
 
 ### Port Already in Use
-```bash
-lsof -ti:3000 | xargs kill -9  # Backend
-lsof -ti:5173 | xargs kill -9  # Frontend
-lsof -ti:8000 | xargs kill -9  # AI Agent
-```
+Change ports in docker-compose.yml or .env.local
 
-### Database Connection Issues
-- Verify Supabase credentials in `.env`
-- Check database is accessible: `psql postgres://...`
-- Run migrations again: `supabase db push`
+### Database Connection Refused
+Ensure postgres service is running: `docker-compose logs postgres`
 
-### Stellar Contract Issues
-- Verify contract ID in `.env`
-- Check account has sufficient XLM for testnet
-- Use [Stellar Lab](https://lab.stellar.org) for debugging
-
-## Development Commands
-
-```bash
-bash scripts/run-tests.sh
-bash scripts/deploy-contracts.sh
-bash scripts/seed-data.sh
-bash scripts/setup-dev.sh
-```
+### Node Modules Issues
+Delete node_modules and reinstall:
+\`\`\`bash
+rm -r node_modules
+npm install
+\`\`\`

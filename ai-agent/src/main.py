@@ -1,81 +1,49 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-import numpy as np
-from typing import List, Dict
-from agents.fraud_detector import FraudDetector
-from agents.consensus_builder import ConsensusBuilder
-from agents.budget_optimizer import BudgetOptimizer
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+import os
+from dotenv import load_dotenv
 
-app = FastAPI(title="Common Good AI Agent")
+load_dotenv()
 
-fraud_detector = FraudDetector()
-consensus_builder = ConsensusBuilder()
-budget_optimizer = BudgetOptimizer()
+app = FastAPI(
+    title="Common Good AI Agent",
+    description="AI services for fraud detection, budget optimization, and consensus building",
+    version="0.1.0"
+)
 
-class VotePattern(BaseModel):
-    user_id: str
-    project_id: int
-    vote_value: bool
-    timestamp: str
-    amount: float
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/health")
+async def health():
+    """Health check endpoint"""
+    return {"status": "ok"}
 
 @app.post("/analyze/fraud")
-async def analyze_fraud(votes: List[VotePattern]):
+async def analyze_fraud(votes: list):
     """Detect suspicious voting patterns"""
-    try:
-        risk_score = fraud_detector.analyze(votes)
-        
-        return {
-            "risk_score": risk_score,
-            "suspicious": risk_score > 0.7,
-            "indicators": fraud_detector.get_indicators(),
-            "recommendations": fraud_detector.get_recommendations()
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    # TODO: Implement fraud detection
+    return {
+        "risk_score": 0.0,
+        "suspicious": False,
+        "indicators": []
+    }
 
 @app.post("/optimize/proposal")
-async def optimize_proposal(
-    project_id: int,
-    current_proposal: Dict,
-    voting_history: List[VotePattern]
-):
-    """Suggest proposal modifications to reach consensus"""
-    try:
-        analysis = consensus_builder.analyze_objections(voting_history)
-        
-        modified_proposal = consensus_builder.suggest_modification(
-            current_proposal,
-            primary_objection=analysis['primary_objection']
-        )
-        
-        return {
-            "original_proposal": current_proposal,
-            "modified_proposal": modified_proposal,
-            "rationale": analysis['rationale'],
-            "predicted_approval_increase": analysis['predicted_improvement']
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+async def optimize_proposal(project_id: int, proposal: dict):
+    """Suggest proposal modifications for consensus"""
+    # TODO: Implement consensus builder
+    return {
+        "modified_proposal": proposal,
+        "rationale": "No modifications needed"
+    }
 
-@app.post("/optimize/budget")
-async def optimize_budget_allocation(
-    total_budget: float,
-    projects: List[Dict],
-    constraints: Dict
-):
-    """Optimize budget distribution across projects"""
-    try:
-        allocation = budget_optimizer.optimize(
-            total_budget,
-            projects,
-            constraints
-        )
-        
-        return {
-            "recommended_allocation": allocation,
-            "efficiency_score": budget_optimizer.calculate_efficiency(allocation),
-            "equity_metrics": budget_optimizer.calculate_equity(allocation)
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
